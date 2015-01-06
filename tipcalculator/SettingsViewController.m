@@ -10,10 +10,10 @@
 
 @interface SettingsViewController ()
 @property (weak, nonatomic) IBOutlet UIStepper *badServiceStepper;
-@property (weak, nonatomic) IBOutlet UIStepper *averageServiceStepper;
+@property (weak, nonatomic) IBOutlet UIStepper *avgServiceStepper;
 @property (weak, nonatomic) IBOutlet UIStepper *greatServiceStepper;
 @property (weak, nonatomic) IBOutlet UILabel *badServiceLabel;
-@property (weak, nonatomic) IBOutlet UILabel *averageServiceLabel;
+@property (weak, nonatomic) IBOutlet UILabel *avgServiceLabel;
 @property (weak, nonatomic) IBOutlet UILabel *greatServiceLabel;
 
 @end
@@ -23,27 +23,46 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+
+    if (self) {
+        self.title = @"Settings";
+    }
+
     return self;
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    self.badServiceStepper.value = 10;
-    self.averageServiceStepper.value = 15;
-    self.greatServiceStepper.value = 20;
-}
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSInteger badServiceTip = [defaults integerForKey:@"badServiceTip"];
+    NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
+    NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
+
+    self.badServiceLabel.text = [NSString stringWithFormat:@"%ld%%", badServiceTip];
+    self.avgServiceLabel.text = [NSString stringWithFormat:@"%ld%%", avgServiceTip];
+    self.greatServiceLabel.text = [NSString stringWithFormat:@"%ld%%", greatServiceTip];
+
+    self.badServiceStepper.value = badServiceTip == 0 ? 10 : badServiceTip;
+    self.avgServiceStepper.value = avgServiceTip == 0 ? 15 : avgServiceTip;
+    self.greatServiceStepper.value = greatServiceTip == 0 ? 20 : greatServiceTip;
 }
 
 - (IBAction)steppersChanged {
-    self.badServiceLabel.text = [NSString stringWithFormat:@"%.0f%%", self.badServiceStepper.value];
-    self.averageServiceLabel.text = [NSString stringWithFormat:@"%.0f%%", self.averageServiceStepper.value];
-    self.greatServiceLabel.text = [NSString stringWithFormat:@"%.0f%%", self.greatServiceStepper.value];
+    NSInteger badServiceTip = self.badServiceStepper.value;
+    NSInteger avgServiceTip = self.avgServiceStepper.value;
+    NSInteger greatServiceTip = self.greatServiceStepper.value;
+
+    self.badServiceLabel.text = [NSString stringWithFormat:@"%ld%%", badServiceTip];
+    self.avgServiceLabel.text = [NSString stringWithFormat:@"%ld%%", avgServiceTip];
+    self.greatServiceLabel.text = [NSString stringWithFormat:@"%ld%%", greatServiceTip];
+
+    // Save to the NSUserDefaults
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:badServiceTip forKey:@"badServiceTip"];
+    [defaults setInteger:avgServiceTip forKey:@"avgServiceTip"];
+    [defaults setInteger:greatServiceTip forKey:@"greatServiceTip"];
+    [defaults synchronize];
 }
 
 @end

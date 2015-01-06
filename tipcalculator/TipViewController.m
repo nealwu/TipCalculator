@@ -43,12 +43,15 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-}
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSInteger badServiceTip = [defaults integerForKey:@"badServiceTip"];
+    NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
+    NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
+
+    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", badServiceTip] forSegmentAtIndex:0];
+    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", avgServiceTip] forSegmentAtIndex:1];
+    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", greatServiceTip] forSegmentAtIndex:2];
 }
 
 - (IBAction)onTap:(id)sender {
@@ -56,10 +59,50 @@
     [self updateValues];
 }
 
+- (IBAction)billEditingDidBegin {
+    NSLog(@"Editing begin");
+
+    if (self.billTextField.text.length == 0) {
+        self.billTextField.text = [[NSLocale currentLocale] objectForKey:NSLocaleCurrencySymbol];
+    }
+}
+
+- (IBAction)billEditingDidEnd {
+    NSLog(@"Editing end");
+
+    NSString *billValue = self.billTextField.text;
+    billValue = [billValue stringByReplacingOccurrencesOfString:@"$" withString:@""];
+    billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
+
+    double value = [billValue doubleValue];
+    NSLog(@"%f", value);
+
+    NSNumberFormatter *currencyFormatter = [[NSNumberFormatter alloc] init];
+    [currencyFormatter setLocale:[NSLocale currentLocale]];
+    [currencyFormatter setMaximumFractionDigits:2];
+    [currencyFormatter setMinimumFractionDigits:2];
+    [currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+
+    self.billTextField.text = [currencyFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
+}
+
+- (IBAction)billEditingChanged {
+    NSLog(@"Editing changed");
+}
+
 - (void)updateValues {
-    float billAmount = [self.billTextField.text floatValue];
-    NSArray *tipValues = @[@(0.1), @(0.15), @(0.2)];
-    float tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSInteger badServiceTip = [defaults integerForKey:@"badServiceTip"];
+    NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
+    NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
+    NSArray *tipValues = @[@(badServiceTip), @(avgServiceTip), @(greatServiceTip)];
+
+    NSString *billValue = self.billTextField.text;
+    billValue = [billValue stringByReplacingOccurrencesOfString:@"$" withString:@""];
+    billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
+
+    double billAmount = [billValue doubleValue];
+    float tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue] / 100.0;
     float totalAmount = billAmount + tipAmount;
 
     self.tipLabel.text = [NSString stringWithFormat:@"$%0.2f", tipAmount];
