@@ -99,8 +99,11 @@
     billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
 
     double billAmount = [billValue doubleValue];
+    billAmount = round(100 * billAmount) / 100;
     double tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue] / 100.0;
+    tipAmount = round(100 * tipAmount) / 100;
     double totalAmount = billAmount + tipAmount;
+    totalAmount = round(100 * totalAmount) / 100;
 
     self.tipLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:tipAmount]];
     self.totalLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:totalAmount]];
