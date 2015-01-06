@@ -31,6 +31,12 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.title = @"Tip Calculator";
+
+        self.currencyFormatter = [[NSNumberFormatter alloc] init];
+        [self.currencyFormatter setLocale:[NSLocale currentLocale]];
+        [self.currencyFormatter setMaximumFractionDigits:2];
+        [self.currencyFormatter setMinimumFractionDigits:2];
+        [self.currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
     }
     return self;
 }
@@ -44,15 +50,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSInteger badServiceTip = [defaults integerForKey:@"badServiceTip"];
-    NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
-    NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
-
-    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", badServiceTip] forSegmentAtIndex:0];
-    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", avgServiceTip] forSegmentAtIndex:1];
-    [self.tipControl setTitle:[NSString stringWithFormat:@"%ld%%", greatServiceTip] forSegmentAtIndex:2];
+    [self updateValues];
 }
 
 - (IBAction)onTap:(id)sender {
@@ -78,12 +76,6 @@
     double value = [billValue doubleValue];
     NSLog(@"%f", value);
 
-    self.currencyFormatter = [[NSNumberFormatter alloc] init];
-    [self.currencyFormatter setLocale:[NSLocale currentLocale]];
-    [self.currencyFormatter setMaximumFractionDigits:2];
-    [self.currencyFormatter setMinimumFractionDigits:2];
-    [self.currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-
     self.billTextField.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
 }
 
@@ -97,6 +89,10 @@
     NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
     NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
     NSArray *tipValues = @[@(badServiceTip), @(avgServiceTip), @(greatServiceTip)];
+
+    for (int i = 0; i < 3; i++) {
+        [self.tipControl setTitle:[NSString stringWithFormat:@"%@%%", tipValues[i]] forSegmentAtIndex:i];
+    }
 
     NSString *billValue = self.billTextField.text;
     billValue = [billValue stringByReplacingOccurrencesOfString:@"$" withString:@""];
