@@ -15,6 +15,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *tipLabel;
 @property (weak, nonatomic) IBOutlet UILabel *totalLabel;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *tipControl;
+@property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
 
 - (IBAction)onTap:(id)sender;
 - (void)updateValues;
@@ -77,13 +78,13 @@
     double value = [billValue doubleValue];
     NSLog(@"%f", value);
 
-    NSNumberFormatter *currencyFormatter = [[NSNumberFormatter alloc] init];
-    [currencyFormatter setLocale:[NSLocale currentLocale]];
-    [currencyFormatter setMaximumFractionDigits:2];
-    [currencyFormatter setMinimumFractionDigits:2];
-    [currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+    self.currencyFormatter = [[NSNumberFormatter alloc] init];
+    [self.currencyFormatter setLocale:[NSLocale currentLocale]];
+    [self.currencyFormatter setMaximumFractionDigits:2];
+    [self.currencyFormatter setMinimumFractionDigits:2];
+    [self.currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
 
-    self.billTextField.text = [currencyFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
+    self.billTextField.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
 }
 
 - (IBAction)billEditingChanged {
@@ -102,11 +103,11 @@
     billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
 
     double billAmount = [billValue doubleValue];
-    float tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue] / 100.0;
-    float totalAmount = billAmount + tipAmount;
+    double tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue] / 100.0;
+    double totalAmount = billAmount + tipAmount;
 
-    self.tipLabel.text = [NSString stringWithFormat:@"$%0.2f", tipAmount];
-    self.totalLabel.text = [NSString stringWithFormat:@"$%0.2f", totalAmount];
+    self.tipLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:tipAmount]];
+    self.totalLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:totalAmount]];
 }
 
 - (void)onSettingsButton {
