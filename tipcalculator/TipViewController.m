@@ -16,6 +16,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *totalLabel;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *tipControl;
 @property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
+@property (nonatomic) double savedBillAmount;
 
 - (IBAction)onTap:(id)sender;
 - (void)updateValues;
@@ -29,6 +30,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+
     if (self) {
         self.title = @"Tip Calculator";
 
@@ -37,12 +39,20 @@
         [self.currencyFormatter setMaximumFractionDigits:2];
         [self.currencyFormatter setMinimumFractionDigits:2];
         [self.currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+        self.savedBillAmount = 0;
     }
+
     return self;
 }
 
 - (void)viewDidLoad
 {
+    NSLog(@"View did load");
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    self.savedBillAmount = [defaults doubleForKey:@"billAmount"];
+    self.billTextField.text = [NSString stringWithFormat:@"%.2f", self.savedBillAmount];
+
     [super viewDidLoad];
     [self updateValues];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Settings" style:UIBarButtonItemStylePlain target:self action:@selector(onSettingsButton)];
@@ -60,6 +70,10 @@
 
 - (IBAction)billEditingDidBegin {
     NSLog(@"Editing begin");
+
+    if ([self.billTextField.text isEqualToString:@"0.00"]) {
+        self.billTextField.text = @"";
+    }
 
     if (self.billTextField.text.length == 0) {
         self.billTextField.text = [[NSLocale currentLocale] objectForKey:NSLocaleCurrencySymbol];
@@ -107,6 +121,10 @@
 
     self.tipLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:tipAmount]];
     self.totalLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:totalAmount]];
+
+    NSLog(@"Saving %.2f", billAmount);
+    [defaults setDouble:billAmount forKey:@"billAmount"];
+    [defaults synchronize];
 }
 
 - (void)onSettingsButton {
