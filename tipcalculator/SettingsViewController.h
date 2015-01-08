@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
+static const int DEFAULT_BAD_SERVICE_TIP = 10;
+static const int DEFAULT_AVG_SERVICE_TIP = 15;
+static const int DEFAULT_GREAT_SERVICE_TIP = 20;
+
 @interface SettingsViewController : UIViewController
 
 @end

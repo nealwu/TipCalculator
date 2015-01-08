@@ -16,6 +16,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *avgServiceLabel;
 @property (weak, nonatomic) IBOutlet UILabel *greatServiceLabel;
 
+- (void)setLabelPercentagesWithBadService:(NSInteger)badServiceTip withAvgService:(NSInteger)avgServiceTip withGreatService:(NSInteger)greatServiceTip;
+
 @end
 
 @implementation SettingsViewController
@@ -30,6 +32,12 @@
     return self;
 }
 
+- (void)setLabelPercentagesWithBadService:(NSInteger)badServiceTip withAvgService:(NSInteger)avgServiceTip withGreatService:(NSInteger)greatServiceTip {
+    self.badServiceLabel.text = [NSString stringWithFormat:@"%ld%%", badServiceTip];
+    self.avgServiceLabel.text = [NSString stringWithFormat:@"%ld%%", avgServiceTip];
+    self.greatServiceLabel.text = [NSString stringWithFormat:@"%ld%%", greatServiceTip];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 
@@ -38,13 +46,12 @@
     NSInteger avgServiceTip = [defaults integerForKey:@"avgServiceTip"];
     NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
 
-    self.badServiceLabel.text = [NSString stringWithFormat:@"%ld%%", badServiceTip];
-    self.avgServiceLabel.text = [NSString stringWithFormat:@"%ld%%", avgServiceTip];
-    self.greatServiceLabel.text = [NSString stringWithFormat:@"%ld%%", greatServiceTip];
+    [self setLabelPercentagesWithBadService:badServiceTip withAvgService:avgServiceTip withGreatService:greatServiceTip];
 
-    self.badServiceStepper.value = badServiceTip == 0 ? 10 : badServiceTip;
-    self.avgServiceStepper.value = avgServiceTip == 0 ? 15 : avgServiceTip;
-    self.greatServiceStepper.value = greatServiceTip == 0 ? 20 : greatServiceTip;
+    // Set the stepper values
+    self.badServiceStepper.value = badServiceTip == 0 ? DEFAULT_BAD_SERVICE_TIP : badServiceTip;
+    self.avgServiceStepper.value = avgServiceTip == 0 ? DEFAULT_AVG_SERVICE_TIP : avgServiceTip;
+    self.greatServiceStepper.value = greatServiceTip == 0 ? DEFAULT_GREAT_SERVICE_TIP : greatServiceTip;
 }
 
 - (IBAction)steppersChanged {
@@ -52,9 +59,7 @@
     NSInteger avgServiceTip = self.avgServiceStepper.value;
     NSInteger greatServiceTip = self.greatServiceStepper.value;
 
-    self.badServiceLabel.text = [NSString stringWithFormat:@"%ld%%", badServiceTip];
-    self.avgServiceLabel.text = [NSString stringWithFormat:@"%ld%%", avgServiceTip];
-    self.greatServiceLabel.text = [NSString stringWithFormat:@"%ld%%", greatServiceTip];
+    [self setLabelPercentagesWithBadService:badServiceTip withAvgService:avgServiceTip withGreatService:greatServiceTip];
 
     // Save to the NSUserDefaults
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
