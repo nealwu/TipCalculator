@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+static const int MAXIMUM_BILL_HOLD_TIME = 600; // 10 minutes in seconds
+
 @interface TipViewController : UIViewController
 
 @end

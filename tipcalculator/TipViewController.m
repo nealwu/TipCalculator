@@ -16,19 +16,22 @@
 @property (weak, nonatomic) IBOutlet UILabel *totalLabel;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *tipControl;
 @property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
-@property (nonatomic) double savedBillAmount;
+@property (strong, nonatomic) NSString *currencySymbol;
 
 - (IBAction)onTap:(id)sender;
 - (void)updateValues;
 
 - (void)onSettingsButton;
 
+- (double)parseAmount:(NSString *)amount;
+- (NSString *)formatAmount:(double)amount;
+- (double)roundCents:(double)amount;
+
 @end
 
 @implementation TipViewController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
 
     if (self) {
@@ -39,23 +42,44 @@
         [self.currencyFormatter setMaximumFractionDigits:2];
         [self.currencyFormatter setMinimumFractionDigits:2];
         [self.currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-        self.savedBillAmount = 0;
+        self.currencyFormatter.lenient = YES;
+        self.currencySymbol = [[NSLocale currentLocale] objectForKey:NSLocaleCurrencySymbol];
     }
 
     return self;
 }
 
-- (void)viewDidLoad
-{
+- (double)parseAmount:(NSString *)amount {
+    double value = [[self.currencyFormatter numberFromString:amount] doubleValue];
+    return value;
+}
+
+- (NSString *)formatAmount:(double)amount {
+    return [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:amount]];
+}
+
+- (double)roundCents:(double)amount {
+    return round(100 * amount) / 100;
+}
+
+- (void)viewDidLoad {
     NSLog(@"View did load");
+    [super viewDidLoad];
+
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Settings" style:UIBarButtonItemStylePlain target:self action:@selector(onSettingsButton)];
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    self.savedBillAmount = [defaults doubleForKey:@"billAmount"];
-    self.billTextField.text = [NSString stringWithFormat:@"%.2f", self.savedBillAmount];
+    double savedBillAmount = [defaults doubleForKey:@"billAmount"];
 
-    [super viewDidLoad];
+    double lastUpdatedTime = [defaults doubleForKey:@"lastUpdatedTime"];
+    double currentTime = [[NSDate date] timeIntervalSinceReferenceDate];
+
+    // Only reuse the previous bill amount if we're within the valid time window
+    if (currentTime - lastUpdatedTime < MAXIMUM_BILL_HOLD_TIME) {
+        self.billTextField.text = [self formatAmount:savedBillAmount];
+    }
+
     [self updateValues];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Settings" style:UIBarButtonItemStylePlain target:self action:@selector(onSettingsButton)];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -69,32 +93,22 @@
 }
 
 - (IBAction)billEditingDidBegin {
-    NSLog(@"Editing begin");
-
-    if ([self.billTextField.text isEqualToString:@"0.00"]) {
+    if ([self parseAmount:self.billTextField.text] == 0) {
         self.billTextField.text = @"";
     }
 
-    if (self.billTextField.text.length == 0) {
-        self.billTextField.text = [[NSLocale currentLocale] objectForKey:NSLocaleCurrencySymbol];
-    }
+    // Remove the extra characters to leave only the number
+    self.billTextField.text = [self.billTextField.text stringByReplacingOccurrencesOfString:@" " withString:@""];
+    self.billTextField.text = [self.billTextField.text stringByReplacingOccurrencesOfString:self.currencySymbol withString:@""];
 }
 
 - (IBAction)billEditingDidEnd {
-    NSLog(@"Editing end");
-
-    NSString *billValue = self.billTextField.text;
-    billValue = [billValue stringByReplacingOccurrencesOfString:@"$" withString:@""];
-    billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
-
-    double value = [billValue doubleValue];
-    NSLog(@"%f", value);
-
-    self.billTextField.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
+    double value = [self parseAmount:self.billTextField.text];
+    self.billTextField.text = [self formatAmount:value];
 }
 
 - (IBAction)billEditingChanged {
-    NSLog(@"Editing changed");
+    [self updateValues];
 }
 
 - (void)updateValues {
@@ -104,26 +118,21 @@
     NSInteger greatServiceTip = [defaults integerForKey:@"greatServiceTip"];
     NSArray *tipValues = @[@(badServiceTip), @(avgServiceTip), @(greatServiceTip)];
 
+    // Set the segmented control button values
     for (int i = 0; i < 3; i++) {
         [self.tipControl setTitle:[NSString stringWithFormat:@"%@%%", tipValues[i]] forSegmentAtIndex:i];
     }
 
-    NSString *billValue = self.billTextField.text;
-    billValue = [billValue stringByReplacingOccurrencesOfString:@"$" withString:@""];
-    billValue = [billValue stringByReplacingOccurrencesOfString:@"," withString:@""];
+    double billAmount = [self roundCents:[self parseAmount:self.billTextField.text]];
+    double tipAmount = [self roundCents:billAmount * [tipValues[self.tipControl.selectedSegmentIndex] doubleValue] / 100.0];
+    double totalAmount = [self roundCents:billAmount + tipAmount];
 
-    double billAmount = [billValue doubleValue];
-    billAmount = round(100 * billAmount) / 100;
-    double tipAmount = billAmount * [tipValues[self.tipControl.selectedSegmentIndex] floatValue] / 100.0;
-    tipAmount = round(100 * tipAmount) / 100;
-    double totalAmount = billAmount + tipAmount;
-    totalAmount = round(100 * totalAmount) / 100;
+    self.tipLabel.text = [self formatAmount:tipAmount];
+    self.totalLabel.text = [self formatAmount:totalAmount];
 
-    self.tipLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:tipAmount]];
-    self.totalLabel.text = [self.currencyFormatter stringFromNumber:[NSNumber numberWithDouble:totalAmount]];
-
-    NSLog(@"Saving %.2f", billAmount);
+    double currentTime = [[NSDate date] timeIntervalSinceReferenceDate];
     [defaults setDouble:billAmount forKey:@"billAmount"];
+    [defaults setDouble:currentTime forKey:@"lastUpdatedTime"];
     [defaults synchronize];
 }
 
