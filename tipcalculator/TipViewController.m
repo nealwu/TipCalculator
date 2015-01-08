@@ -15,11 +15,12 @@
 @property (weak, nonatomic) IBOutlet UILabel *tipLabel;
 @property (weak, nonatomic) IBOutlet UILabel *totalLabel;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *tipControl;
-@property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
-@property (strong, nonatomic) NSString *currencySymbol;
 @property (weak, nonatomic) IBOutlet UILabel *groupSizeLabel;
 @property (weak, nonatomic) IBOutlet UIStepper *groupSizeStepper;
 @property (weak, nonatomic) IBOutlet UILabel *totalPerPersonLabel;
+
+@property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
+@property (strong, nonatomic) NSString *currencySymbol;
 
 - (IBAction)onTap:(id)sender;
 - (void)updateValues;
