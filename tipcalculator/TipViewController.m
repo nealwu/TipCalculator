@@ -50,8 +50,7 @@
 }
 
 - (double)parseAmount:(NSString *)amount {
-    double value = [[self.currencyFormatter numberFromString:amount] doubleValue];
-    return value;
+    return [[self.currencyFormatter numberFromString:amount] doubleValue];
 }
 
 - (NSString *)formatAmount:(double)amount {
@@ -63,7 +62,6 @@
 }
 
 - (void)viewDidLoad {
-    NSLog(@"View did load");
     [super viewDidLoad];
 
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Settings" style:UIBarButtonItemStylePlain target:self action:@selector(onSettingsButton)];
@@ -98,6 +96,7 @@
     }
 
     // Remove the extra characters to leave only the number
+    self.billTextField.text = [self.billTextField.text stringByReplacingOccurrencesOfString:@" " withString:@""];
     self.billTextField.text = [self.billTextField.text stringByReplacingOccurrencesOfString:@" " withString:@""];
     self.billTextField.text = [self.billTextField.text stringByReplacingOccurrencesOfString:self.currencySymbol withString:@""];
 }
