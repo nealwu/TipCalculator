@@ -17,6 +17,9 @@
 @property (weak, nonatomic) IBOutlet UISegmentedControl *tipControl;
 @property (strong, nonatomic) NSNumberFormatter *currencyFormatter;
 @property (strong, nonatomic) NSString *currencySymbol;
+@property (weak, nonatomic) IBOutlet UILabel *groupSizeLabel;
+@property (weak, nonatomic) IBOutlet UIStepper *groupSizeStepper;
+@property (weak, nonatomic) IBOutlet UILabel *totalPerPersonLabel;
 
 - (IBAction)onTap:(id)sender;
 - (void)updateValues;
@@ -77,6 +80,7 @@
         self.billTextField.text = [self formatAmount:savedBillAmount];
     }
 
+    self.groupSizeStepper.value = [self.groupSizeLabel.text integerValue];
     [self updateValues];
 }
 
@@ -129,6 +133,9 @@
     self.tipLabel.text = [self formatAmount:tipAmount];
     self.totalLabel.text = [self formatAmount:totalAmount];
 
+    int groupSize = (int) self.groupSizeStepper.value;
+    self.totalPerPersonLabel.text = [self formatAmount:totalAmount / groupSize];
+
     double currentTime = [[NSDate date] timeIntervalSinceReferenceDate];
     [defaults setDouble:billAmount forKey:@"billAmount"];
     [defaults setDouble:currentTime forKey:@"lastUpdatedTime"];
@@ -138,6 +145,11 @@
 - (void)onSettingsButton {
     SettingsViewController *settingsViewController = [[SettingsViewController alloc] init];
     [self.navigationController pushViewController:settingsViewController animated:YES];
+}
+
+- (IBAction)groupSizeChanged {
+    self.groupSizeLabel.text = [NSString stringWithFormat:@"%.0f", self.groupSizeStepper.value];
+    [self updateValues];
 }
 
 @end
