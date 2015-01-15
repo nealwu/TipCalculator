@@ -12,7 +12,7 @@ Time spent: 8-9 hours in total
  * [x] Optional: The app also includes a feature for groups to determine the amount each person should pay to split the bill.
  * [x] Optional: The app automatically updates all data while the user is typing.
  * [x] Optional: The app works flawlessly across different locales and handles commas, periods, and currency symbols correctly.
- * [x] Optional: Everything is purple! ;)
+ * [x] Optional: Everything is purple ;)
 
 ## Notes:
 
